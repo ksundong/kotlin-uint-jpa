@@ -32,3 +32,14 @@ Java에서는 `unsigned` 자료형은 지원하지 않는다. (사실 JVM 스펙
 - Amazon Corretto JDK 11.1
 - Docker Desktop 4.6.1
   - MySql 5.7
+
+## 검증
+
+### 1. `UInt` 타입은 `unsigned` 자료형과 원활하게 동작할 것이다.
+
+거짓. JPA는 `UInt`타입을 지원하지 않는다.
+
+```text
+'Basic' attribute type should not be 'UInt' 
+ Inspection info: Reports property type mismatch for JPA attributes.
+```
