@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  uint-db:
+    image: mysql:5.7
+    container_name: uint-db
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_USER=scott
+      - MYSQL_ROOT_PASSWORD=tiger
+      - MYSQL_PASSWORD=tiger77
+      - MYSQL_DATABASE=uint
+      - TZ=UTC
+    volumes:
+      - ./src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/1.sql
+      - uint-db:/var/lib/mysql
+    command: [ 'mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci', '--default-authentication-plugin=mysql_native_password' ]
+    healthcheck:
+      test: "/usr/bin/mysql --user=root --password=tiger --execute \"SHOW DATABASES;\""
+      interval: 2s
+      timeout: 20s
+      retries: 10
+volumes:
+  uint-db:

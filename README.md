@@ -31,3 +31,4 @@ Java에서는 `unsigned` 자료형은 지원하지 않는다. (사실 JVM 스펙
 - IntelliJ IDEA 2021.3.3
 - Amazon Corretto JDK 11.1
 - Docker Desktop 4.6.1
+  - MySql 5.7
