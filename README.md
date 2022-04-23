@@ -43,3 +43,41 @@ Java에서는 `unsigned` 자료형은 지원하지 않는다. (사실 JVM 스펙
 'Basic' attribute type should not be 'UInt' 
  Inspection info: Reports property type mismatch for JPA attributes.
 ```
+
+### 2. `UInt` 에 대한 `Converter` 를 만들면 원활하게 동작할 것이다.(`UintTest` 참조)
+
+일단 Spring이 `UInt` 타입에 대한 `Convert` 를 지원하지 않아 `Long` 타입으로 받은 후 변환을 거쳤다.
+
+```http request
+POST http://localhost:8080/uint?mau=2147483648
+```
+
+발생한 로그 및 예외 로그
+
+```text
+2022-04-24 00:48:41.917 DEBUG 66735 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : POST "/uint?mau=2147483648", parameters={masked}
+2022-04-24 00:48:41.923 DEBUG 66735 --- [nio-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to dev.idion.kotlinuint.uint.UintTestController#create(Long)
+2022-04-24 00:48:41.993  INFO 66735 --- [nio-8080-exec-1] dev.idion.kotlinuint.uint.UIntConverter  : 엔티티 값: 2147483648
+2022-04-24 00:48:41.993  INFO 66735 --- [nio-8080-exec-1] dev.idion.kotlinuint.uint.UIntConverter  : DB에 저장될 값: -2147483648
+2022-04-24 00:48:41.993  INFO 66735 --- [nio-8080-exec-1] dev.idion.kotlinuint.uint.UIntConverter  : DB에 저장된 값: -2147483648
+2022-04-24 00:48:41.993  INFO 66735 --- [nio-8080-exec-1] dev.idion.kotlinuint.uint.UIntConverter  : 엔티티로 반환될 값: 2147483648
+2022-04-24 00:48:41.999 DEBUG 66735 --- [nio-8080-exec-1] org.hibernate.SQL                        : 
+    insert 
+    into
+        uint_test
+        (mau) 
+    values
+        (?)
+2022-04-24 00:48:42.013  INFO 66735 --- [nio-8080-exec-1] dev.idion.kotlinuint.uint.UIntConverter  : 엔티티 값: 2147483648
+2022-04-24 00:48:42.013  INFO 66735 --- [nio-8080-exec-1] dev.idion.kotlinuint.uint.UIntConverter  : DB에 저장될 값: -2147483648
+2022-04-24 00:48:42.028  WARN 66735 --- [nio-8080-exec-1] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 1264, SQLState: 22001
+2022-04-24 00:48:42.028 ERROR 66735 --- [nio-8080-exec-1] o.h.engine.jdbc.spi.SqlExceptionHelper   : Data truncation: Out of range value for column 'mau' at row 1
+2022-04-24 00:48:42.047 DEBUG 66735 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Failed to complete request: org.springframework.dao.DataIntegrityViolationException: could not execute statement; SQL [n/a]; nested exception is org.hibernate.exception.DataException: could not execute statement
+2022-04-24 00:48:42.057 ERROR 66735 --- [nio-8080-exec-1] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is org.springframework.dao.DataIntegrityViolationException: could not execute statement; SQL [n/a]; nested exception is org.hibernate.exception.DataException: could not execute statement] with root cause
+
+com.mysql.cj.jdbc.exceptions.MysqlDataTruncation: Data truncation: Out of range value for column 'mau' at row 1
+```
+
+값 자체가 음수가 되어 DB와 타입 불일치로 실패하는 모습을 볼 수 있다.
+
+#### 컨버터 구현을 바꿔볼까?
